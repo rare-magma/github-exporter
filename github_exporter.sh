@@ -169,7 +169,6 @@ $forks_stats
 END_HEREDOC
     )
 
-    echo $gh_stats
     echo "$gh_stats" | $GZIP |
         $CURL --silent --fail --show-error \
             --request POST "${INFLUXDB_URL}" \
