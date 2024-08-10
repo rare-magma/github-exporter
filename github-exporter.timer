@@ -1,0 +1,8 @@
+[Unit]
+Description=Github Exporter Timer
+
+[Timer]
+OnCalendar=*-*-* 03:03:00
+
+[Install]
+WantedBy=timers.target

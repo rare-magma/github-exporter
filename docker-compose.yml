@@ -1,0 +1,38 @@
+version: "3"
+services:
+  scheduler:
+    image: ghcr.io/reddec/compose-scheduler:1.1.0
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 250m
+          pids: 1024
+    privileged: true
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  github-exporter:
+    image: ghcr.io/rare-magma/github-exporter:latest
+    init: true
+    read_only: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 64m
+          pids: 16
+    volumes:
+      - ./github_exporter.conf:/app/github_exporter.conf:ro
+    labels:
+      net.reddec.scheduler.cron: "03 3 * * *"
