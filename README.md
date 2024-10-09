@@ -42,7 +42,7 @@ CLI tool that uploads the Github traffic and statistics API data to influxdb on 
 1. Run it.
 
    ```bash
-    docker run --rm --init --tty --interactive --read-only --cap-drop ALL --security-opt no-new-privileges:true --cpus 2 -m 64m --pids-limit 16 --volume ./github_exporter.json:/app/github_exporter.json:ro ghcr.io/rare-magma/github-exporter:latest
+    docker run --rm --tty --interactive --read-only --cap-drop ALL --security-opt no-new-privileges:true --cpus 2 -m 64m --pids-limit 16 --volume ./github_exporter.json:/app/github_exporter.json:ro ghcr.io/rare-magma/github-exporter:latest
     ```
 
 ### With the Makefile
