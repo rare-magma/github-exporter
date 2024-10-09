@@ -66,6 +66,12 @@ func main() {
 	ghc := github.NewClient(client).WithAuthToken(config.GithubApiToken)
 	opts := &github.RepositoryListByAuthenticatedUserOptions{Type: "owner"}
 	repos, resp, err := ghc.Repositories.ListByAuthenticatedUser(context.Background(), opts)
+	if _, ok := err.(*github.RateLimitError); ok {
+		log.Fatalln("Hit rate limit")
+	}
+	if _, ok := err.(*github.AbuseRateLimitError); ok {
+		log.Fatalln("Hit secondary rate limit")
+	}
 	if err != nil {
 		log.Fatalln("Error getting list of repositories: ", err)
 	}
@@ -133,6 +139,7 @@ func main() {
 
 		wg.Add(1)
 		go func(payload *bytes.Buffer) {
+			defer wg.Done()
 			starsLine := fmt.Sprintf("github_stats_stars,repo=%s count=%d %v\n", repo.GetFullName(), *repo.StargazersCount, time.Now().Unix())
 			payload.WriteString(starsLine)
 			forksLine := fmt.Sprintf("github_stats_forks,repo=%s count=%d %v\n", repo.GetFullName(), *repo.ForksCount, time.Now().Unix())
