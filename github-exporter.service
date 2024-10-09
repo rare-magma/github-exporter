@@ -3,8 +3,8 @@ Description=Github Exporter
 After=network-online.target
 
 [Service]
-ExecStart=/home/%u/.local/bin/github_exporter.sh
-LoadCredential=creds:/home/%u/.config/github_exporter.conf
+ExecStart=/home/%u/.local/bin/github_exporter
+LoadCredential=creds:/home/%u/.config/github_exporter.json
 Type=oneshot
 
 # Security hardening options

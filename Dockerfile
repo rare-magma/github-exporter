@@ -1,9 +1,9 @@
-FROM docker.io/library/alpine:latest
-ENV RUNNING_IN_DOCKER=true
-ENTRYPOINT ["/bin/bash"]
-CMD ["/app/github_exporter.sh"]
-COPY github_exporter.sh /app/github_exporter.sh
-RUN addgroup -g 10001 user \
-    && adduser -H -D -u 10000 -G user user
-RUN apk add --quiet --no-cache bash coreutils curl jq
-USER user:user
+FROM docker.io/library/golang:alpine AS builder
+WORKDIR /app
+ENV CGO_ENABLED=0
+COPY main.go go.mod ./
+RUN go build -ldflags "-s -w" -trimpath -o app main.go
+
+FROM cgr.dev/chainguard/static:latest
+COPY --from=builder /app/app /usr/bin/app
+ENTRYPOINT ["/usr/bin/app"]

@@ -20,7 +20,6 @@ services:
 
   github-exporter:
     image: ghcr.io/rare-magma/github-exporter:latest
-    init: true
     read_only: true
     cap_drop:
       - ALL
@@ -33,6 +32,6 @@ services:
           memory: 64m
           pids: 16
     volumes:
-      - ./github_exporter.conf:/app/github_exporter.conf:ro
+      - ./github_exporter.json:/github_exporter.json:ro
     labels:
       net.reddec.scheduler.cron: "03 3 * * *"

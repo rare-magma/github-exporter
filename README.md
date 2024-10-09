@@ -1,21 +1,14 @@
 # github-exporter
 
-Bash script that uploads the Github traffic and statistics API data to influxdb on a daily basis
+CLI tool that uploads the Github traffic and statistics API data to influxdb on a daily basis
 
 ## Dependencies
 
-- [awk](https://www.gnu.org/software/gawk/manual/gawk.html)
-- [bash](https://www.gnu.org/software/bash/)
-- [coreutils (cat)](https://www.gnu.org/software/coreutils/)
-- [coreutils (date)](https://www.gnu.org/software/coreutils/)
-- [curl](https://curl.se/)
-- [gzip](https://www.gnu.org/software/gzip/)
-- [influxdb v2+](https://docs.influxdata.com/influxdb/v2.6/)
-- [jq](https://stedolan.github.io/jq/)
-- [systemd](https://systemd.io/)
+- [go](https://go.dev/)
 - Optional:
   - [make](https://www.gnu.org/software/make/) - for automatic installation support
   - [docker](https://docs.docker.com/)
+  - [systemd](https://systemd.io/)
 
 ## Relevant documentation
 
@@ -30,7 +23,7 @@ Bash script that uploads the Github traffic and statistics API data to influxdb 
 
 #### docker-compose
 
-1. Configure `github_exporter.conf` (see the configuration section below).
+1. Configure `github_exporter.json` (see the configuration section below).
 1. Run it.
 
    ```bash
@@ -45,11 +38,11 @@ Bash script that uploads the Github traffic and statistics API data to influxdb 
    docker build . --tag github-exporter
    ```
 
-1. Configure `github_exporter.conf` (see the configuration section below).
+1. Configure `github_exporter.json` (see the configuration section below).
 1. Run it.
 
    ```bash
-    docker run --rm --init --tty --interactive --read-only --cap-drop ALL --security-opt no-new-privileges:true --cpus 2 -m 64m --pids-limit 16 --volume ./github_exporter.conf:/app/github_exporter.conf:ro ghcr.io/rare-magma/github-exporter:latest
+    docker run --rm --init --tty --interactive --read-only --cap-drop ALL --security-opt no-new-privileges:true --cpus 2 -m 64m --pids-limit 16 --volume ./github_exporter.json:/app/github_exporter.json:ro ghcr.io/rare-magma/github-exporter:latest
     ```
 
 ### With the Makefile
@@ -57,23 +50,30 @@ Bash script that uploads the Github traffic and statistics API data to influxdb 
 For convenience, you can install this exporter with the following command or follow the manual process described in the next paragraph.
 
 ```bash
+make build
 make install
-$EDITOR $HOME/.config/github_exporter.conf
+$EDITOR $HOME/.config/github_exporter.json
 ```
 
 ### Manually
 
-1. Copy `github_exporter.sh` to `$HOME/.local/bin/` and make it executable.
+1. Build `github_exporter` with:
 
-2. Copy `github_exporter.conf` to `$HOME/.config/`, configure them (see the configuration section below) and make them read only.
+   ```bash
+   go build -ldflags="-s -w" -o github_exporter main.go
+   ```
 
-3. Copy the systemd unit and timer to `$HOME/.config/systemd/user/`:
+2. Copy `github_exporter` to `$HOME/.local/bin/`.
+
+3. Copy `github_exporter.json` to `$HOME/.config/`, configure them (see the configuration section below) and make them read only.
+
+4. Copy the systemd unit and timer to `$HOME/.config/systemd/user/`:
 
    ```bash
    cp github-exporter.* $HOME/.config/systemd/user/
    ```
 
-4. and run the following command to activate the timer:
+5. and run the following command to activate the timer:
 
    ```bash
    systemctl --user enable --now github-exporter.timer
@@ -89,29 +89,25 @@ systemctl --user start github-exporter.service
 
 The config file has a few options:
 
-```bash
-INFLUXDB_HOST='influxdb.example.com'
-INFLUXDB_API_TOKEN='ZXhhbXBsZXRva2VuZXhhcXdzZGFzZGptcW9kcXdvZGptcXdvZHF3b2RqbXF3ZHFhc2RhCg=='
-ORG='home'
-BUCKET='github'
-GITHUB_TOKEN='ZXhhbXBsZXRva2VuZXhhcXdzZGFzZGptcW9kcXdvZGptcXdvZHF3b2RqbXF3ZHFhc2RhCg=='
+```json
+{
+ "InfluxDBHost": "influxdb.example.com",
+ "InfluxDBApiToken": "ZXhhbXBsZXRva2VuZXhhcXdzZGFzZGptcW9kcXdvZGptcXdvZHF3b2RqbXF3ZHFhc2RhCg==",
+ "Org": "home",
+ "Bucket": "github",
+ "GithubApiToken": "ZXhhbXBsZXRva2VuZXhhcXdzZGFzZGptcW9kcXdvZGptcXdvZHF3b2RqbXF3ZHFhc2RhCg=="
+}
 ```
 
-- `INFLUXDB_HOST` should be the FQDN of the influxdb server.
-- `ORG` should be the name of the influxdb organization that contains the github data bucket defined below.
-- `BUCKET` should be the name of the influxdb bucket that will hold the github data.
-- `INFLUXDB_API_TOKEN` should be the influxdb API token value.
+- `InfluxDBHost` should be the FQDN of the influxdb server.
+- `Org` should be the name of the influxdb organization that contains the github data bucket defined below.
+- `Bucket` should be the name of the influxdb bucket that will hold the github data.
+- `InfluxDBApiToken` should be the influxdb API token value.
   - This token should have write access to the `BUCKET` defined above.
-- `GITHUB_TOKEN` should be the github API token value.
+- `GithubApiToken` should be the Github API token value.
   - This token should be assigned the "Administration" repository permissions (read) permission.
 
 ## Troubleshooting
-
-Run the script manually with bash set to trace:
-
-```bash
-bash -x $HOME/.local/bin/github_exporter.sh
-```
 
 Check the systemd service logs and timer info with:
 
@@ -173,8 +169,8 @@ systemctl --user disable --now github-exporter.timer
 Delete the following files:
 
 ```bash
-~/.local/bin/github_exporter.sh
-~/.config/github_exporter.conf
+~/.local/bin/github_exporter
+~/.config/github_exporter.json
 ~/.config/systemd/user/github-exporter.timer
 ~/.config/systemd/user/github-exporter.service
 ```
@@ -182,10 +178,4 @@ Delete the following files:
 ## Credits
 
 - [reddec/compose-scheduler](https://github.com/reddec/compose-scheduler)
-
-This project takes inspiration from the following:
-
-- [rare-magma/pbs-exporter](https://github.com/rare-magma/pbs-exporter)
-- [jorgedlcruz/github-grafana](https://github.com/jorgedlcruz/github-grafana)
-- [mad-ady/prometheus-borg-exporter](https://github.com/mad-ady/prometheus-borg-exporter)
-- [OVYA/prometheus-borg-exporter](https://github.com/OVYA/prometheus-borg-exporter)
+- [google/go-github](https://github.com/google/go-github)
