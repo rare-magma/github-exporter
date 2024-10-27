@@ -66,3 +66,4 @@ jobs:
         build_flags: -trimpath
         ldflags: -s -w
         binary_name: github_exporter
+        release_tag: latest
