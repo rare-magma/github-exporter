@@ -61,7 +61,7 @@ jobs:
     - uses: actions/setup-go@v5
     - name: Build
       run: |
-        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags="-s -w" -trimpath -o github_exporter main.go
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} CGO_ENABLED=0 go build -ldflags="-s -w" -trimpath -o github_exporter main.go
     - name: Create Release
       id: create_release
       uses: softprops/action-gh-release@v1
