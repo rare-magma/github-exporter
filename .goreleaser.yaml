@@ -1,4 +1,5 @@
-project_name: example
+project_name: github-exporter
+version: 2
 builds:
   - env: [CGO_ENABLED=0]
     goos:
