@@ -50,7 +50,7 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
 
   releases-matrix:
-    name: Release Go Binary
+    name: Release Go Binaries
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -58,12 +58,12 @@ jobs:
         goarch: [amd64, arm64]
     steps:
     - uses: actions/checkout@v4
-    - uses: wangyoucao577/go-release-action@v1
+    - uses: actions/setup-go@v5
+    - name: Build
+      run: |
+        GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags="-s -w" -trimpath -o github_exporter main.go
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        goos: ${{ matrix.goos }}
-        goarch: ${{ matrix.goarch }}
-        build_flags: -trimpath
-        ldflags: -s -w
-        binary_name: github_exporter
-        release_tag: latest
+        files: github_exporter
