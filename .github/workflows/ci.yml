@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
-      contents: write
+      contents: read
       packages: write
     steps:
       - name: Checkout
@@ -50,6 +50,8 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
 
   releases-matrix:
+    permissions:
+      contents: write
     name: Release Go Binaries
     runs-on: ubuntu-latest
     strategy:
