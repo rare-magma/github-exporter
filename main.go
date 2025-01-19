@@ -59,14 +59,14 @@ func (t *retryableTransport) RoundTrip(req *http.Request) (*http.Response, error
 	for shouldRetry(err, resp) && retries < retryCount {
 		backoff := time.Duration(math.Pow(2, float64(retries))) * time.Second
 		time.Sleep(backoff)
-		if resp.Body != nil {
+		if resp != nil && resp.Body != nil {
 			io.Copy(io.Discard, resp.Body)
 			resp.Body.Close()
 		}
 		if req.Body != nil {
 			req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		}
-		if resp != nil {
+		if resp != nil && resp.Status != "" {
 			log.Printf("Previous request failed with %s", resp.Status)
 		}
 		log.Printf("Retry %d of request to: %s", retries+1, req.URL)
