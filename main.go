@@ -37,6 +37,9 @@ func shouldRetry(err error, resp *http.Response) bool {
 	if err != nil {
 		return true
 	}
+	if resp == nil {
+		return true
+	}
 	switch resp.StatusCode {
 	case http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
 		return true
@@ -63,7 +66,9 @@ func (t *retryableTransport) RoundTrip(req *http.Request) (*http.Response, error
 		if req.Body != nil {
 			req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 		}
-		log.Printf("Previous request failed with %s", resp.Status)
+		if resp != nil {
+			log.Printf("Previous request failed with %s", resp.Status)
+		}
 		log.Printf("Retry %d of request to: %s", retries+1, req.URL)
 		resp, err = t.transport.RoundTrip(req)
 		retries++
