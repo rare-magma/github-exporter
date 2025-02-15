@@ -11,6 +11,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -195,6 +196,27 @@ func main() {
 			forksLine := fmt.Sprintf("github_stats_forks,repo=%s count=%d %v\n", repo.GetFullName(), *repo.ForksCount, time.Now().Unix())
 			payload.WriteString(forksLine)
 		}(&payload)
+
+		wg.Add(1)
+		go func(payload *bytes.Buffer) {
+			defer wg.Done()
+			workflows, _, err := ghc.Actions.ListWorkflows(context.Background(), repo.GetOwner().GetLogin(), repo.GetName(), nil)
+			if err != nil {
+				log.Fatalln("Error getting workflows: ", err)
+			}
+			for _, workflow := range workflows.Workflows {
+				runs, _, err := ghc.Actions.ListWorkflowRunsByID(context.Background(), repo.GetOwner().GetLogin(), repo.GetName(), *workflow.ID, nil)
+				if err != nil {
+					log.Fatalln("Error getting workflow runs: ", err)
+				}
+				for _, run := range runs.WorkflowRuns {
+					duration := run.UpdatedAt.GetTime().Sub(*run.RunStartedAt.GetTime()).Seconds()
+					influxLine := fmt.Sprintf("github_stats_actions,repo=%s,workflow=%s duration=%.0f %v\n", repo.GetFullName(), strings.ReplaceAll(*workflow.Name, " ", "\\ "), duration, run.CreatedAt.GetTime().UnixMilli())
+					payload.WriteString(influxLine)
+				}
+			}
+		}(&payload)
+
 	}
 	wg.Wait()
 

@@ -124,6 +124,7 @@ systemctl --user list-timers
 - github_stats_views: Number of unique views and total count per repo
 - github_stats_stars: Number of stars per repo
 - github_stats_forks: Number of forks per repo
+- github_stats_actions: Total duration in seconds of a workflow run per repo
 
 ## Exported metrics example
 
@@ -134,6 +135,7 @@ github_stats_referrals,repo=rare-magma/guitos,referrer=github.com count=74,uniqu
 github_stats_views,repo=rare-magma/guitos count=1,uniques=1 1723161600
 github_stats_stars,repo=rare-magma/guitos count=30 1723285063
 github_stats_forks,repo=rare-magma/guitos count=3 1723285063
+github_stats_actions,repo=rare-magma/guitos,workflow=Dependabot\ Updates duration=46 1739184696000
 ```
 
 ## Example grafana dashboard
