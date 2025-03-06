@@ -135,7 +135,7 @@ github_stats_referrals,repo=rare-magma/guitos,referrer=github.com count=74,uniqu
 github_stats_views,repo=rare-magma/guitos count=1,uniques=1 1723161600
 github_stats_stars,repo=rare-magma/guitos count=30 1723285063
 github_stats_forks,repo=rare-magma/guitos count=3 1723285063
-github_stats_actions,repo=rare-magma/guitos,workflow=Dependabot\ Updates duration=46 1739184696000
+github_stats_actions,repo=rare-magma/guitos,workflow=Dependabot\ Updates duration=46 1723285063
 ```
 
 ## Example grafana dashboard
