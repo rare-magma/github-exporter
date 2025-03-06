@@ -211,7 +211,7 @@ func main() {
 				}
 				for _, run := range runs.WorkflowRuns {
 					duration := run.UpdatedAt.GetTime().Sub(*run.RunStartedAt.GetTime()).Seconds()
-					influxLine := fmt.Sprintf("github_stats_actions,repo=%s,workflow=%s duration=%.0f %v\n", repo.GetFullName(), strings.ReplaceAll(*workflow.Name, " ", "\\ "), duration, run.CreatedAt.GetTime().UnixMilli())
+					influxLine := fmt.Sprintf("github_stats_actions,repo=%s,workflow=%s duration=%.0f %v\n", repo.GetFullName(), strings.ReplaceAll(*workflow.Name, " ", "\\ "), duration, run.CreatedAt.GetTime().Unix())
 					payload.WriteString(influxLine)
 				}
 			}
@@ -230,7 +230,7 @@ func main() {
 	if err != nil {
 		log.Fatalln("Error compressing data: ", err)
 	}
-	url := fmt.Sprintf("https://%s/api/v2/write?precision=ms&org=%s&bucket=%s", config.InfluxDBHost, config.Org, config.Bucket)
+	url := fmt.Sprintf("https://%s/api/v2/write?precision=s&org=%s&bucket=%s", config.InfluxDBHost, config.Org, config.Bucket)
 	post, _ := http.NewRequest("POST", url, &buf)
 	post.Header.Set("Accept", "application/json")
 	post.Header.Set("Authorization", "Token "+config.InfluxDBApiToken)
