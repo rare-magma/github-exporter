@@ -33,6 +33,7 @@ type retryableTransport struct {
 }
 
 const retryCount = 3
+const stringLimit = 1024
 
 func shouldRetry(err error, resp *http.Response) bool {
 	if err != nil {
@@ -75,6 +76,17 @@ func (t *retryableTransport) RoundTrip(req *http.Request) (*http.Response, error
 		retries++
 	}
 	return resp, err
+}
+
+func escapeTagValue(value string) string {
+	withoutCommas := strings.ReplaceAll(value, ",", `\,`)
+	withoutEquals := strings.ReplaceAll(withoutCommas, "=", `\=`)
+	escaped := strings.ReplaceAll(withoutEquals, ` `, `\ `)
+	runes := []rune(escaped)
+	if len(runes) <= stringLimit {
+		return escaped
+	}
+	return string(runes[0:stringLimit-3]) + "..."
 }
 
 func main() {
@@ -211,7 +223,7 @@ func main() {
 				}
 				for _, run := range runs.WorkflowRuns {
 					duration := run.UpdatedAt.GetTime().Sub(*run.RunStartedAt.GetTime()).Seconds()
-					influxLine := fmt.Sprintf("github_stats_actions,repo=%s,workflow=%s duration=%.0f %v\n", repo.GetFullName(), strings.ReplaceAll(*workflow.Name, " ", "\\ "), duration, run.CreatedAt.GetTime().Unix())
+					influxLine := fmt.Sprintf("github_stats_actions,repo=%s,workflow=%s duration=%.0f %v\n", repo.GetFullName(), escapeTagValue(*workflow.Name), duration, run.CreatedAt.GetTime().Unix())
 					payload.WriteString(influxLine)
 				}
 			}
