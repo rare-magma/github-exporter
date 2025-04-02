@@ -19,29 +19,29 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # ratchet:actions/setup-go@v5
 
-    - name: Go Format
-      run: gofmt -s -w . && git diff --exit-code
+      - name: Go Format
+        run: gofmt -s -w . && git diff --exit-code
 
-    - name: Go Vet
-      run: go vet
+      - name: Go Vet
+        run: go vet
 
-    - name: Go Tidy
-      run: go mod tidy && git diff --exit-code
+      - name: Go Tidy
+        run: go mod tidy && git diff --exit-code
 
-    - name: Go Mod
-      run: go mod download
+      - name: Go Mod
+        run: go mod download
 
-    - name: Go Mod Verify
-      run: go mod verify
+      - name: Go Mod Verify
+        run: go mod verify
 
-    - name: Install govulncheck
-      run: go install golang.org/x/vuln/cmd/govulncheck@latest
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
 
-    - name: Run govulncheck
-      run: govulncheck
+      - name: Run govulncheck
+        run: govulncheck
 
   build-and-push-image:
     needs: lint
@@ -54,16 +54,16 @@ jobs:
       packages: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@29109295f81e9208d7d86ff1c6c12d2833863392 # ratchet:docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # ratchet:docker/setup-buildx-action@v3
 
       - name: Log in to the container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # ratchet:docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -71,13 +71,13 @@ jobs:
 
       - name: Extract metadata for Docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@902fa8ec7d6ecbf8d84d538b9b233a880e428804 # ratchet:docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
         id: build-push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@471d1dc4e07e5cdedd4c2171150001c434f0b7a4 # ratchet:docker/build-push-action@v6
         with:
           platforms: linux/amd64,linux/arm64
           push: true
@@ -86,7 +86,7 @@ jobs:
           annotations: ${{ steps.meta.outputs.annotations }}
 
       - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # ratchet:actions/attest-build-provenance@v2
         with:
           subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.build-push.outputs.digest }}
@@ -105,27 +105,27 @@ jobs:
         goos: [linux]
         goarch: [amd64, arm64]
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # ratchet:actions/checkout@v4
+      - uses: actions/setup-go@0aaccfd150d50ccaeb58ebd88d36e91967a5f35b # ratchet:actions/setup-go@v5
 
-    - name: Build
-      env:
-        CGO_ENABLED: 0
-        GOOS: ${{ matrix.goos }}
-        GOARCH: ${{ matrix.goarch }}
-      run: go build -ldflags="-s -w" -trimpath -o github_exporter main.go
+      - name: Build
+        env:
+          CGO_ENABLED: 0
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: go build -ldflags="-s -w" -trimpath -o github_exporter main.go
 
-    - name: Compress
-      run: zip github_exporter-${{ matrix.goos }}-${{ matrix.goarch }}.zip github_exporter
+      - name: Compress
+        run: zip github_exporter-${{ matrix.goos }}-${{ matrix.goarch }}.zip github_exporter
 
-    - name: Generate artifact attestation
-      uses: actions/attest-build-provenance@v2
-      with:
-        subject-path: github_exporter-${{ matrix.goos }}-${{ matrix.goarch }}.zip
+      - name: Generate artifact attestation
+        uses: actions/attest-build-provenance@c074443f1aee8d4aeeae555aebba3282517141b2 # ratchet:actions/attest-build-provenance@v2
+        with:
+          subject-path: github_exporter-${{ matrix.goos }}-${{ matrix.goarch }}.zip
 
-    - name: Create Release
-      id: create_release
-      uses: softprops/action-gh-release@v2
-      with:
-        files: github_exporter-${{ matrix.goos }}-${{ matrix.goarch }}.zip
-        tag_name: latest
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@c95fe1489396fe8a9eb87c0abf8aa5b2ef267fda # ratchet:softprops/action-gh-release@v2
+        with:
+          files: github_exporter-${{ matrix.goos }}-${{ matrix.goarch }}.zip
+          tag_name: latest
