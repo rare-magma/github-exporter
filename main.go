@@ -43,7 +43,7 @@ func shouldRetry(err error, resp *http.Response) bool {
 		return true
 	}
 	switch resp.StatusCode {
-	case http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+	case http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout, http.StatusTooManyRequests:
 		return true
 	default:
 		return false
@@ -128,7 +128,8 @@ func main() {
 	}
 	ghc := github.NewClient(client).WithAuthToken(config.GithubApiToken)
 	opts := &github.RepositoryListByAuthenticatedUserOptions{Type: "owner"}
-	repos, resp, err := ghc.Repositories.ListByAuthenticatedUser(context.Background(), opts)
+	ctx := context.Background()
+	repos, resp, err := ghc.Repositories.ListByAuthenticatedUser(context.WithValue(ctx, github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true), opts)
 	if _, ok := err.(*github.RateLimitError); ok {
 		log.Fatalln("Hit rate limit")
 	}
@@ -151,7 +152,7 @@ func main() {
 		wg.Add(1)
 		go func(payload *bytes.Buffer) {
 			defer wg.Done()
-			clones, _, err := ghc.Repositories.ListTrafficClones(context.Background(), repo.GetOwner().GetLogin(), repo.GetName(), nil)
+			clones, _, err := ghc.Repositories.ListTrafficClones(context.WithValue(ctx, github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true), repo.GetOwner().GetLogin(), repo.GetName(), nil)
 			if err != nil {
 				log.Fatalln("Error getting clones traffic data: ", err)
 			}
@@ -164,7 +165,7 @@ func main() {
 		wg.Add(1)
 		go func(payload *bytes.Buffer) {
 			defer wg.Done()
-			paths, _, err := ghc.Repositories.ListTrafficPaths(context.Background(), repo.GetOwner().GetLogin(), repo.GetName())
+			paths, _, err := ghc.Repositories.ListTrafficPaths(context.WithValue(ctx, github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true), repo.GetOwner().GetLogin(), repo.GetName())
 			if err != nil {
 				log.Fatalln("Error getting paths traffic data: ", err)
 			}
@@ -177,7 +178,7 @@ func main() {
 		wg.Add(1)
 		go func(payload *bytes.Buffer) {
 			defer wg.Done()
-			refs, _, err := ghc.Repositories.ListTrafficReferrers(context.Background(), repo.GetOwner().GetLogin(), repo.GetName())
+			refs, _, err := ghc.Repositories.ListTrafficReferrers(context.WithValue(ctx, github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true), repo.GetOwner().GetLogin(), repo.GetName())
 			if err != nil {
 				log.Fatalln("Error getting referrers traffic data: ", err)
 			}
@@ -190,7 +191,7 @@ func main() {
 		wg.Add(1)
 		go func(payload *bytes.Buffer) {
 			defer wg.Done()
-			views, _, err := ghc.Repositories.ListTrafficViews(context.Background(), repo.GetOwner().GetLogin(), repo.GetName(), nil)
+			views, _, err := ghc.Repositories.ListTrafficViews(context.WithValue(ctx, github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true), repo.GetOwner().GetLogin(), repo.GetName(), nil)
 			if err != nil {
 				log.Fatalln("Error getting views traffic data: ", err)
 			}
@@ -212,12 +213,12 @@ func main() {
 		wg.Add(1)
 		go func(payload *bytes.Buffer) {
 			defer wg.Done()
-			workflows, _, err := ghc.Actions.ListWorkflows(context.Background(), repo.GetOwner().GetLogin(), repo.GetName(), nil)
+			workflows, _, err := ghc.Actions.ListWorkflows(context.WithValue(ctx, github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true), repo.GetOwner().GetLogin(), repo.GetName(), nil)
 			if err != nil {
 				log.Fatalln("Error getting workflows: ", err)
 			}
 			for _, workflow := range workflows.Workflows {
-				runs, _, err := ghc.Actions.ListWorkflowRunsByID(context.Background(), repo.GetOwner().GetLogin(), repo.GetName(), *workflow.ID, nil)
+				runs, _, err := ghc.Actions.ListWorkflowRunsByID(context.WithValue(ctx, github.SleepUntilPrimaryRateLimitResetWhenRateLimited, true), repo.GetOwner().GetLogin(), repo.GetName(), *workflow.ID, nil)
 				if err != nil {
 					log.Fatalln("Error getting workflow runs: ", err)
 				}
