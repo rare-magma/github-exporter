@@ -2,7 +2,7 @@ FROM --platform=$BUILDPLATFORM docker.io/library/golang:alpine AS builder
 WORKDIR /app
 ENV CGO_ENABLED=0
 
-COPY main.go go.mod ./
+COPY main.go go.mod go.sum ./
 
 RUN for arch in amd64 arm64; do \
       GOOS=linux GOARCH=$arch go build -ldflags "-s -w" -trimpath -o app-$arch main.go; \
