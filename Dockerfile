@@ -4,7 +4,7 @@ ENV CGO_ENABLED=0
 ENV GOOS=linux
 ENV GOARCH=$TARGETARCH
 
-COPY main.go go.mod ./
+COPY main.go go.mod go.sum ./
 
 RUN go build -ldflags "-s -w" -trimpath -o app main.go
 
