@@ -8,6 +8,6 @@ COPY main.go go.mod go.sum ./
 
 RUN go build -ldflags "-s -w" -trimpath -o app main.go
 
-FROM cgr.dev/chainguard/static:latest
+FROM registry.access.redhat.com/hi/static:latest
 COPY --from=builder /app/app /usr/bin/app
 ENTRYPOINT ["/usr/bin/app"]
