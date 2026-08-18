@@ -32,6 +32,6 @@ services:
           memory: 64m
           pids: 16
     volumes:
-      - ./github_exporter.json:/github_exporter.json:ro
+      - ./github_exporter.json:/tmpgithub_exporter.json:ro
     labels:
       net.reddec.scheduler.cron: "03 3 * * *"
